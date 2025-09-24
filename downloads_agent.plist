@@ -1,20 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-  <dict>
+<dict>
     <key>Label</key>
     <string>com.user.downloadsorganizer</string>
+
     <key>ProgramArguments</key>
     <array>
-      <string>/usr/bin/python3</string>
-      <string>/Users/YOUR_USERNAME/Scripts/downloads_organizer.py</string>
+        <!-- Update this path if your Homebrew Python version differs -->
+        <string>/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/bin/python3.13</string>
+        <string>/Users/YOURUSERNAME/Scripts/downloads_organizer.py</string>
+        <string>--once</string>
+        <string>--verbose</string>
+        <string>--logfile</string>
+        <string>/Users/YOURUSERNAME/Library/Logs/DownloadsOrganizer.log</string>
     </array>
+
+    <!-- Trigger only when Downloads folder changes -->
+    <key>WatchPaths</key>
+    <array>
+        <string>/Users/YOURUSERNAME/Downloads</string>
+    </array>
+
+    <!-- Don’t run at login, don’t auto-restart -->
     <key>RunAtLoad</key>
-    <true/>
+    <false/>
     <key>KeepAlive</key>
-    <true/>
+    <false/>
+
+    <!-- Capture output for debugging -->
     <key>StandardOutPath</key>
     <string>/tmp/downloadsorganizer.out</string>
     <key>StandardErrorPath</key>
     <string>/tmp/downloadsorganizer.err</string>
-  </dict>
+</dict>
 </plist>
