@@ -1,34 +1,38 @@
 # 📁 Downloads Organizer (macOS Only)
 
-This Python script automatically organizes your **Downloads** folder by sorting files into categorized subfolders whenever files are added. It runs silently in the background on macOS using **LaunchAgents**.
+A lightweight macOS automation that keeps your **Downloads** folder clean by automatically organizing files into categorized subfolders.
+
+It runs silently in the background using a macOS **LaunchAgent**, safely handling browser downloads and avoiding partial or broken files.
 
 ---
 
-## ✅ Features
+## ✨ What It Does
 
-* Sorts files into: `Images`, `Videos`, `Documents`, `Music`, `Code`, and `Other`
-* Detects code folders and organizes them too
-* Handles duplicate filenames gracefully
-* Runs automatically whenever the Downloads folder changes
-
----
-
-## 💻 Requirements
-
-* macOS (Monterey or newer recommended)
-* Homebrew-installed Python 3.13 (preferred)
-
-  * Check with: `brew install python@3.13`
-  * Verify with: `python3 --version`
-
-> ⚠️ You must grant **Full Disk Access** to the Python binary so it can manage your Downloads folder. Instructions are below.
+- Automatically organizes `~/Downloads` into folders like:
+  - Documents, Images, Videos, Music, Code, Archives, Apps, and more
+- Skips partial browser downloads (`.download`, `.crdownload`, `.part`)
+- Only moves files once they are fully downloaded and stable
+- Handles duplicate filenames safely
+- No UI, no notifications, near-zero system impact
 
 ---
 
-## 🛠️ Setup Instructions (macOS)
+## ⚙️ How It Works
 
-### 1. Clone This Repository
+- A macOS **LaunchAgent** runs the script every **20 seconds**
+- Each run:
+  1. Scans the Downloads folder
+  2. Skips incomplete or temporary files
+  3. Moves completed files into the correct category
+  4. Exits immediately
 
+This interval-based approach is more reliable than filesystem event triggers for browser downloads.
+
+---
+
+## 🛠️ Setup (Quick)
+
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/boraytuna/Downloads-Organizer.git
 cd Downloads-Organizer
@@ -41,6 +45,7 @@ cd Downloads-Organizer
 ```bash
 mkdir -p ~/Scripts
 cp downloads_organizer.py ~/Scripts/
+chmod +x ~/Scripts/downloads_organizer.py
 ```
 
 ---
@@ -53,62 +58,38 @@ Copy the provided `downloads_agent.plist` file to your LaunchAgents directory:
 cp downloads_agent.plist ~/Library/LaunchAgents/com.user.downloadsorganizer.plist
 ```
 
-The plist is configured to:
-
-* Watch your `~/Downloads` folder
-* Run the organizer script **once** whenever the folder changes
+* Open the plist and replace YOURUSERNAME with your macOS username.
 
 ---
 
-### 4. Update the Plist to Use Your Homebrew Python
-
-First, locate the full path of Homebrew’s Python:
-
+### 4.Load the LaunchAgent
 ```bash
-readlink -f /opt/homebrew/bin/python3
+UID=$(id -u)
+
+launchctl bootout gui/$UID ~/Library/LaunchAgents/com.user.downloadsorganizer.plist 2>/dev/null
+launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.user.downloadsorganizer.plist
+launchctl enable gui/$UID/com.user.downloadsorganizer
 ```
-
-It should look like:
-
-```
-/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/bin/python3.13
-```
-
-Edit the `ProgramArguments` section of the plist to use this path instead of `/usr/bin/python3`.
-
 ---
 
 ### 5. Grant Full Disk Access
 
 1. Open **System Settings** → **Privacy & Security** → **Full Disk Access**
-2. Click **+** and add the Python binary you found above (e.g., `python3.13` from the Cellar path)
-3. Toggle it **ON**
-
-This allows the script to manage files in `~/Downloads`.
-
----
-
-### 6. Load the LaunchAgent
-
+2. Add and enable:
 ```bash
-launchctl load ~/Library/LaunchAgents/com.user.downloadsorganizer.plist
+/opt/homebrew/bin/python3
 ```
-
-Now the script will run silently in the background whenever a file is added to `~/Downloads`.
 
 ---
 
 ## 🧪 Test It
 
-Drop a file into `~/Downloads`:
-
 ```bash
-touch ~/Downloads/test.txt
-sleep 2
-tail -n 20 ~/Library/Logs/DownloadsOrganizer.log
+echo "test" > ~/Downloads/test_file.pdf
+sleep 25
+ls ~/Downloads/Documents | grep test_file
 ```
-
-You should see a log entry moving the file to `~/Downloads/Documents/test.txt`.
+* If the file moves, eveything is working.
 
 ---
 
@@ -132,33 +113,38 @@ Check logs:
 tail -f ~/Library/Logs/DownloadsOrganizer.log
 ```
 
+LaunchAgent Errors:
+
+```bash
+/tmp/downloadsorganizer.err
+```
 ---
 
-## 🧼 What Gets Organized
+## 📂 Categories & File Types
 
-| Category      | File Types Included                               |
-| ------------- | ------------------------------------------------- |
-| **Images**    | .jpg, .jpeg, .png, .gif, .bmp, .webp, .svg        |
-| **Videos**    | .mp4, .mov, .avi, .mkv                            |
-| **Documents** | .pdf, .docx, .txt, .csv, .pptx, .xlsx             |
-| **Music**     | .mp3, .wav, .aac, .flac                           |
-| **Code**      | .py, .js, .html, .css, .java, .cpp, .json, .ipynb |
-| **Other**     | Anything that doesn’t fit the above               |
-
+| Category | File Types |
+|--------|------------|
+| **Documents** | `.pdf`, `.doc`, `.docx`, `.txt`, `.rtf`, `.csv`, `.tsv`, `.ppt`, `.pptx`, `.key`, `.xls`, `.xlsx`, `.numbers`, `.pages`, `.md`, `.tex` |
+| **Images** | `.jpg`, `.jpeg`, `.png`, `.gif`, `.bmp`, `.tiff`, `.tif`, `.webp`, `.svg`, `.heic`, `.raw`, `.cr2`, `.nef`, `.arw`, `.dng` |
+| **Videos** | `.mp4`, `.mov`, `.avi`, `.mkv`, `.flv`, `.wmv`, `.webm`, `.m4v`, `.mpeg`, `.mpg` |
+| **Music** | `.mp3`, `.wav`, `.aiff`, `.aac`, `.flac`, `.m4a`, `.ogg`, `.alac` |
+| **Code** | `.py`, `.js`, `.ts`, `.tsx`, `.jsx`, `.html`, `.css`, `.scss`, `.java`, `.kt`, `.cpp`, `.c`, `.hpp`, `.h`, `.cs`, `.swift`, `.rs`, `.go`, `.sh`, `.zsh`, `.bash`, `.rb`, `.php`, `.sql`, `.json`, `.yaml`, `.yml`, `.toml`, `.ipynb`, `.xml` |
+| **Archives** | `.zip`, `.rar`, `.7z`, `.tar`, `.gz`, `.bz2`, `.xz`, `.tgz` |
+| **DiskImages** | `.dmg`, `.iso` |
+| **Installers** | `.pkg`, `.mpkg` |
+| **Apps** | `.app` |
+| **Fonts** | `.ttf`, `.otf`, `.woff`, `.woff2` |
+| **Design** | `.fig`, `.sketch`, `.xd`, `.psd`, `.ai` |
+| **3D** | `.blend`, `.fbx`, `.obj`, `.stl`, `.dae`, `.glb`, `.gltf` |
+| **Torrents** | `.torrent` |
+| **Subtitles** | `.srt`, `.vtt` |
+| **Certificates** | `.pem`, `.crt`, `.cer`, `.key`, `.p12` |
+| **VM** | `.ova`, `.ovf`, `.vdi`, `.vmdk` |
+| **Logs** | `.log` |
+| **Other** | Anything that doesn’t match the categories above |
 ---
 
 ## 🙌 Credits
 
 Built with 💻 by [@boraytuna](https://github.com/boraytuna)
 
----
-
-### 🚀 Quick One-Liner to Reactivate Service
-
-If you ever want to reload and see logs:
-
-```bash
-launchctl unload ~/Library/LaunchAgents/com.user.downloadsorganizer.plist 2>/dev/null; \
-launchctl load ~/Library/LaunchAgents/com.user.downloadsorganizer.plist; \
-tail -n 20 ~/Library/Logs/DownloadsOrganizer.log
-```

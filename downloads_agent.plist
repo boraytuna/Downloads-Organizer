@@ -1,37 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+ "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+
+    <!-- Unique identifier for the LaunchAgent -->
     <key>Label</key>
     <string>com.user.downloadsorganizer</string>
 
+    <!-- Command to run -->
     <key>ProgramArguments</key>
     <array>
-        <!-- Update this path if your Homebrew Python version differs -->
-        <string>/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/bin/python3.13</string>
+        <!-- Stable Homebrew Python path -->
+        <string>/opt/homebrew/bin/python3</string>
+
+        <!-- Path to the organizer script -->
         <string>/Users/YOURUSERNAME/Scripts/downloads_organizer.py</string>
+
+        <!-- Run once per trigger -->
         <string>--once</string>
+
+        <!-- Enable detailed logging -->
         <string>--verbose</string>
+
+        <!-- Log file location -->
         <string>--logfile</string>
         <string>/Users/YOURUSERNAME/Library/Logs/DownloadsOrganizer.log</string>
     </array>
 
-    <!-- Trigger only when Downloads folder changes -->
-    <key>WatchPaths</key>
-    <array>
-        <string>/Users/YOURUSERNAME/Downloads</string>
-    </array>
-
-    <!-- Don’t run at login, don’t auto-restart -->
+    <!-- Run once when the user logs in -->
     <key>RunAtLoad</key>
-    <false/>
-    <key>KeepAlive</key>
-    <false/>
+    <true/>
 
-    <!-- Capture output for debugging -->
+    <!-- Run every 20 seconds -->
+    <key>StartInterval</key>
+    <integer>20</integer>
+
+    <!-- Stdout / stderr for debugging -->
     <key>StandardOutPath</key>
     <string>/tmp/downloadsorganizer.out</string>
+
     <key>StandardErrorPath</key>
     <string>/tmp/downloadsorganizer.err</string>
+
 </dict>
 </plist>
